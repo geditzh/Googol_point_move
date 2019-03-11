@@ -33,7 +33,7 @@ short AssemblyRobot::Initial(short coor)
 		return lastRtnErr = RobotFailure;
 	}
 
-    lastRtn = GT_LoadConfig("C:/Users/df/Desktop/Googol/googol/GTS800.cfg");
+    lastRtn = GT_LoadConfig("C:/Users/df/Desktop/Googol_point_move/googol/GTS800.cfg");
 	if (lastRtn)
 	{
 		printf("GT_LoadConfig():%d\n", lastRtn);
@@ -285,20 +285,6 @@ short AssemblyRobot::WaitForMotionComplete(short moveMode)
 			if (lastRtn)
 				return lastRtnErr = RobotFailure;
 		} while (!((sts[0] & 0x800) && (sts[1] & 0x800) && (sts[2] & 0x800)));
-		
-		lastRtn = GT_GetEncPos(axisNumber[0], encPos, 3);
-		if (lastRtn)
-			return lastRtnErr = RobotFailure;
-
-		lastRtn = GT_GetPrfPos(axisNumber[0],prfPos,3);
-		if (lastRtn)
-			return lastRtnErr = RobotFailure;
-
-		for (int i = 0; i < 3;i++)
-		{ 
-			printf("\nencPos[%d]=%-8.0lf\t",i,encPos[i]);
-			printf("prfPos[%d]=%-8.0lf\n",i,prfPos[i]);
-		}
 		return RobotSuccess;
 	}
 }
@@ -810,7 +796,7 @@ short AssemblyRobot::SetExtDo(short index, short value)
     if(lastRtn)
         return lastRtnErr = RobotFailure;
 
-    lastRtn = GT_LoadExtConfig("C:/Users/df/Desktop/Googol/googol/ExtModule.cfg");
+    lastRtn = GT_LoadExtConfig("C:/Users/df/Desktop/Googol_point_move/googol/ExtModule.cfg");
     if(lastRtn)
         return lastRtnErr = RobotFailure;
 

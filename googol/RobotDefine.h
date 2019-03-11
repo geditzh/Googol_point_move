@@ -6,10 +6,6 @@ const int cHome = 0;
 
 #define PI         3.14159265358979323846
 
-//const double angRange[3][2] =
-//                        { {-25 , 35},
-//                          {-35 , 30},
-//                          {-40 , 60} };
 const double angRange[3][2] =
                         { {-37 , 35},
                           {-37 , 35},
@@ -17,7 +13,6 @@ const double angRange[3][2] =
 const double MaxAcc = 0.10;
 const double MaxDcc = 0.10;
 const double MaxVel = 0.20;
-
 
 #define cPosToImp					 2000
 //Coordination

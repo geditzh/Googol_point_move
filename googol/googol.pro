@@ -26,5 +26,5 @@ HEADERS  += \
 
 FORMS    += mainwindow.ui
 
-LIBS += -LC:\Users\df\Desktop\Googol\googol -lgts
-LIBS += -LC:\Users\df\Desktop\Googol\googol -lExtMdl
+LIBS += -LC:\Users\df\Desktop\Googol_point_move\googol -lgts
+LIBS += -LC:\Users\df\Desktop\Googol_point_move\googol -lExtMdl
