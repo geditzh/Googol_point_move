@@ -82,7 +82,7 @@ int main(int argc, char *argv[])    //正逆街测试
     vector<long> time2;
     for(int i=0;i<pos1.size();i++)
     {
-        time2.push_back(8*i);
+        time2.push_back(12*i);
     }
 
     while(flag == 1)
