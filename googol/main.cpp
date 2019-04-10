@@ -73,44 +73,11 @@ int main(int argc, char *argv[])    //正逆街测试
     AssemblyRobot myrobot;
     cout << "myrobot.Initial():"<<myrobot.Initial(RbtAllAxis)<<endl;
 
-//    vector<long> time1;
-//    int weight = 1;
-//    int direction = 0;
-//    int iter = 0;
-//    long sum = 0;
-//    for(int i=0;i<pos.size();i++)
-//    {
-//        sum += weight;
-//        time1.push_back(sum);
-//        if(iter>1000)
-//        {
-//            if(weight<1 && direction==0)
-//            {
-//                weight += 1;
-//            }
-//            if(weight>1 && direction==1)
-//            {
-//                weight -= 1;
-//            }
-//            if(weight<=1) direction=0;
-//            if(weight>=1) direction=1;
-//            iter = 0;
-//        }
-//        iter += weight;
-//        cout<<weight<<endl;
-//    }
-
     vector<long> time1;
-    for(int i=0;i<pos1.size();i++)
+    for(int i=0;i<pos.size();i++)
     {
         time1.push_back(1*i);
     }
-
-//    vector<long> time3;
-//    for(int i=0;i<pos1.size();i++)
-//    {
-//        time3.push_back(2*i);
-//    }
 
     vector<long> time2;
     for(int i=0;i<pos1.size();i++)
@@ -125,7 +92,6 @@ int main(int argc, char *argv[])    //正逆街测试
         {
             if(myrobot.PointMove(pos,time1,pos.size())!=RobotSuccess)
                 cout<<"oh my god"<<endl;
-
 
             if(myrobot.PointMove(pos1,time2,pos1.size())!=RobotSuccess)
                 cout<<"oh my god"<<endl;
@@ -172,6 +138,16 @@ int main(int argc, char *argv[])    //正逆街测试
 //        double ang8[2][3] = {{0,0,0},{-15,-15,0}};
 //        double ang9[2][3] = {{0,0,0},{15,-15,0}};
 //        double ang10[2][3] = {{0,0,0},{15,15,0}};
+
+//        double ang11[2][3] = {{0,0,0},{-10,0,0}};
+//        double ang12[2][3] = {{0,0,0},{10,0,0}};
+//        double ang13[2][3] = {{0,0,0},{0,-10,0}};
+//        double ang14[2][3] = {{0,0,0},{0,10,0}};
+
+//        double ang15[2][3] = {{0,0,0},{-10,10,0}};
+//        double ang16[2][3] = {{0,0,0},{-10,-10,0}};
+//        double ang17[2][3] = {{0,0,0},{10,-10,0}};
+//        double ang18[2][3] = {{0,0,0},{10,10,0}};
 
 //        while(flag == 1)
 //        {
@@ -294,45 +270,45 @@ int main(int argc, char *argv[])    //正逆街测试
 //                for(int o=0;o<1;o++)
 //                {
 //                    /*********************************************正星形******************************/
-////                     if(myrobot.AngMove(ang4,vel1,1)!=RobotSuccess)
-////                         cout<<"oh my god"<<endl;
-////                     if(myrobot.AngMove(ang8,vel2,1)!=RobotSuccess)
-////                         cout<<"oh my god"<<endl;
-////                     if(myrobot.AngMove(ang2,vel1,1)!=RobotSuccess)
-////                         cout<<"oh my god"<<endl;
-////                     if(myrobot.AngMove(ang7,vel2,1)!=RobotSuccess)
-////                         cout<<"oh my god"<<endl;
-////                     if(myrobot.AngMove(ang3,vel1,1)!=RobotSuccess)
-////                         cout<<"oh my god"<<endl;
-////                     if(myrobot.AngMove(ang10,vel2,1)!=RobotSuccess)
-////                         cout<<"oh my god"<<endl;
-////                     if(myrobot.AngMove(ang1,vel1,1)!=RobotSuccess)
-////                         cout<<"oh my god"<<endl;
-////                     if(myrobot.AngMove(ang9,vel2,1)!=RobotSuccess)
-////                         cout<<"oh my god"<<endl;
-////                     if(myrobot.AngMove(ang4,vel3,1)!=RobotSuccess)
-////                         cout<<"oh my god"<<endl;
+//                     if(myrobot.AngMove(ang14,vel1,1)!=RobotSuccess)
+//                         cout<<"oh my god"<<endl;
+//                     if(myrobot.AngMove(ang16,vel2,1)!=RobotSuccess)
+//                         cout<<"oh my god"<<endl;
+//                     if(myrobot.AngMove(ang12,vel1,1)!=RobotSuccess)
+//                         cout<<"oh my god"<<endl;
+//                     if(myrobot.AngMove(ang15,vel2,1)!=RobotSuccess)
+//                         cout<<"oh my god"<<endl;
+//                     if(myrobot.AngMove(ang13,vel1,1)!=RobotSuccess)
+//                         cout<<"oh my god"<<endl;
+//                     if(myrobot.AngMove(ang18,vel2,1)!=RobotSuccess)
+//                         cout<<"oh my god"<<endl;
+//                     if(myrobot.AngMove(ang11,vel1,1)!=RobotSuccess)
+//                         cout<<"oh my god"<<endl;
+//                     if(myrobot.AngMove(ang17,vel2,1)!=RobotSuccess)
+//                         cout<<"oh my god"<<endl;
+//                     if(myrobot.AngMove(ang14,vel3,1)!=RobotSuccess)
+//                         cout<<"oh my god"<<endl;
 //                   /****************************************************************************/
 
 //                   /*********************************************反星形******************************/
-////                    if(myrobot.AngMove(ang4,vel1,1)!=RobotSuccess)
-////                        cout<<"oh my god"<<endl;
-////                    if(myrobot.AngMove(ang9,vel2,1)!=RobotSuccess)
-////                        cout<<"oh my god"<<endl;
-////                    if(myrobot.AngMove(ang1,vel1,1)!=RobotSuccess)
-////                        cout<<"oh my god"<<endl;
-////                    if(myrobot.AngMove(ang10,vel2,1)!=RobotSuccess)
-////                        cout<<"oh my god"<<endl;
-////                    if(myrobot.AngMove(ang3,vel1,1)!=RobotSuccess)
-////                        cout<<"oh my god"<<endl;
-////                    if(myrobot.AngMove(ang7,vel2,1)!=RobotSuccess)
-////                        cout<<"oh my god"<<endl;
-////                    if(myrobot.AngMove(ang2,vel1,1)!=RobotSuccess)
-////                        cout<<"oh my god"<<endl;
-////                    if(myrobot.AngMove(ang8,vel2,1)!=RobotSuccess)
-////                        cout<<"oh my god"<<endl;
-////                    if(myrobot.AngMove(ang4,vel3,1)!=RobotSuccess)
-////                        cout<<"oh my god"<<endl;
+//                    if(myrobot.AngMove(ang14,vel1,1)!=RobotSuccess)
+//                        cout<<"oh my god"<<endl;
+//                    if(myrobot.AngMove(ang17,vel2,1)!=RobotSuccess)
+//                        cout<<"oh my god"<<endl;
+//                    if(myrobot.AngMove(ang11,vel1,1)!=RobotSuccess)
+//                        cout<<"oh my god"<<endl;
+//                    if(myrobot.AngMove(ang18,vel2,1)!=RobotSuccess)
+//                        cout<<"oh my god"<<endl;
+//                    if(myrobot.AngMove(ang13,vel1,1)!=RobotSuccess)
+//                        cout<<"oh my god"<<endl;
+//                    if(myrobot.AngMove(ang15,vel2,1)!=RobotSuccess)
+//                        cout<<"oh my god"<<endl;
+//                    if(myrobot.AngMove(ang12,vel1,1)!=RobotSuccess)
+//                        cout<<"oh my god"<<endl;
+//                    if(myrobot.AngMove(ang16,vel2,1)!=RobotSuccess)
+//                        cout<<"oh my god"<<endl;
+//                    if(myrobot.AngMove(ang14,vel3,1)!=RobotSuccess)
+//                        cout<<"oh my god"<<endl;
 //                  /****************************************************************************/
 //                  /*********************************************正圆形******************************/
 //                    if(myrobot.AngMove(ang4,vel1,1)!=RobotSuccess)
