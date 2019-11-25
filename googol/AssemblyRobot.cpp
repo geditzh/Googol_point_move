@@ -9,12 +9,11 @@
 
 AssemblyRobot::AssemblyRobot()
 {
-
 }
 AssemblyRobot::~AssemblyRobot()
 {
-
 }
+
 short AssemblyRobot::Initial(short coor)
 {
 	robotCoor = coor;
@@ -33,7 +32,7 @@ short AssemblyRobot::Initial(short coor)
 		return lastRtnErr = RobotFailure;
 	}
 
-    lastRtn = GT_LoadConfig("C:/Users/df/Desktop/Googol_point_move/googol/GTS800.cfg");
+    lastRtn = GT_LoadConfig("./debug/GTS800.cfg");
 	if (lastRtn)
 	{
 		printf("GT_LoadConfig():%d\n", lastRtn);
@@ -431,6 +430,13 @@ short AssemblyRobot::PointMove(vector<vector<double>> pAng, vector<long> pTime, 
         pos[2] = (pos[2] - lastPos[2])*cPosToImp;
 
         cout << j << ":" << pos[0] << "," << pos[1] << "," << pos[2] << endl;
+//        FILE *fp = fopen("C:/Users/df/Desktop/Googol_point_move/googol/fuck.txt","a");
+//        for(i=0;i<count;i++)
+//        {
+//                fprintf(fp,"%f\t%f\t%f\n",pos[0],pos[1],pos[2]);
+//        }
+//        fclose(fp);
+
         for (i = 0; i < 3; i++)
         {
             if (j == 0)
@@ -509,33 +515,6 @@ short AssemblyRobot::PointMove(double(*pAng)[3], long *pTime, unsigned int count
     double ang[3],pos[3];
 
     InverseKinematics(lastAng, lastPos);
-
-    FILE *fp = fopen("C:/Users/df/Desktop/Googol_point_move/googol/test.txt","a");
-    FILE *fp1 = fopen("C:/Users/df/Desktop/Googol_point_move/googol/time.txt","a");
-
-    cout<<count<<endl;
-    for(i=0;i<count;i++)
-    {
-        cout<<"Time:"<<pTime[i]<<"\t";
-        fprintf(fp1,"%d\n",pTime[i]+flag_time);
-        if(i != 0)
-        {
-//            cout<<"Point:"<<pAng[i][0]<<","<<pAng[i][1]<<","<<pAng[i][2]<<endl;
-//            cout<<"Error:"<<pAng[i][0]-pAng[i-1][0]<<","
-//                <<pAng[i][1]-pAng[i-1][1]<<","
-//                <<pAng[i][2]-pAng[i-1][2]<<endl;
-            cout<<"Point:"<<pAng[i][0]<<","<<pAng[i][1]<<","<<pAng[i][2]<<endl;
-            fprintf(fp,"%f\t%f\t%f\n",pAng[i][0],pAng[i][1],pAng[i][2]);
-
-        }
-        else
-        {
-            cout<<"Point:"<<pAng[i][0]<<","<<pAng[i][1]<<","<<pAng[i][2]<<endl;
-        }
-    }
-
-    fclose(fp);
-    fclose(fp1);
 
     flag_time += pTime[count-1];
 
@@ -796,7 +775,7 @@ short AssemblyRobot::SetExtDo(short index, short value)
     if(lastRtn)
         return lastRtnErr = RobotFailure;
 
-    lastRtn = GT_LoadExtConfig("C:/Users/df/Desktop/Googol_point_move/googol/ExtModule.cfg");
+    lastRtn = GT_LoadExtConfig("./debug/ExtModule.cfg");
     if(lastRtn)
         return lastRtnErr = RobotFailure;
 
