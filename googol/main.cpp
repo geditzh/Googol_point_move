@@ -28,7 +28,7 @@ int main(int argc,char *argv[])	//电机点位运动
             {
                 cout<<"input three numbers"<<endl;
                 scanf("%lf%lf%lf",&ang1[0][0],&ang1[0][1],&ang1[0][2]);
-                if(ang1[0][0] == 100) break;
+                if(ang1[0][0] >= 100) break;
                 count = sizeof(time) / sizeof(time[0]);
                 cout << "AngMove(): = " << myrobot.PointMove(ang1, time, count) << endl;
             }

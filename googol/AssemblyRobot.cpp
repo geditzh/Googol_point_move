@@ -274,18 +274,19 @@ short AssemblyRobot::Stop(short stopMode)
 
 short AssemblyRobot::WaitForMotionComplete(short moveMode)
 {
-	long sts[3];
-	double encPos[3], prfPos[3];
-	if (moveMode == RbtAllAxis)
-	{
-		do
-		{
-			lastRtn = GT_GetSts(axisNumber[0], sts, 3);
-			if (lastRtn)
-				return lastRtnErr = RobotFailure;
-		} while (!((sts[0] & 0x800) && (sts[1] & 0x800) && (sts[2] & 0x800)));
-		return RobotSuccess;
-	}
+    long sts[3];
+    double encPos[3], prfPos[3];
+    if (moveMode == RbtAllAxis)
+    {
+        do
+        {
+            lastRtn = GT_GetSts(axisNumber[0], sts, 3);
+            if (lastRtn)
+                return lastRtnErr = RobotFailure;
+            GetEncStatus(lastPrfPos, lastEncPos);
+        } while (!((sts[0] & 0x800) && (sts[1] & 0x800) && (sts[2] & 0x800)));
+        return RobotSuccess;
+    }
 }
 
 
@@ -378,134 +379,134 @@ short AssemblyRobot::GetEncStatus(double(&Prf)[3],double(&Enc)[3])
 }
 
 
-short AssemblyRobot::PointMove(vector<vector<double>> pAng, vector<long> pTime, unsigned int count)
-{
-    long i, j, start = 0;
-    short space[3];
-    double ang[3],pos[3];
+//short AssemblyRobot::PointMove(vector<vector<double>> pAng, vector<long> pTime, unsigned int count)
+//{
+//    long i, j, start = 0;
+//    short space[3];
+//    double ang[3],pos[3];
 
-    InverseKinematics(lastAng, lastPos);
+//    InverseKinematics(lastAng, lastPos);
 
-    lastRtn = GT_ClrSts(1, 8);
-    if (lastRtn)
-        return lastRtnErr = RobotFailure;
+//    lastRtn = GT_ClrSts(1, 8);
+//    if (lastRtn)
+//        return lastRtnErr = RobotFailure;
 
-    for (i = 0; i < 3; i++)
-    {
-        lastRtn = GT_PrfPt(axisNumber[i], PT_MODE_DYNAMIC);
-        if (lastRtn)
-            return lastRtnErr = RobotFailure;
+//    for (i = 0; i < 3; i++)
+//    {
+//        lastRtn = GT_PrfPt(axisNumber[i], PT_MODE_DYNAMIC);
+//        if (lastRtn)
+//            return lastRtnErr = RobotFailure;
 
-        lastRtn = GT_SetPtMemory(axisNumber[i], 1);
-        if (lastRtn)
-            return lastRtnErr = RobotFailure;
+//        lastRtn = GT_SetPtMemory(axisNumber[i], 1);
+//        if (lastRtn)
+//            return lastRtnErr = RobotFailure;
 
-        lastRtn = GT_PtClear(axisNumber[i]);
-        if (lastRtn)
-            return lastRtnErr = RobotFailure;
-    }
+//        lastRtn = GT_PtClear(axisNumber[i]);
+//        if (lastRtn)
+//            return lastRtnErr = RobotFailure;
+//    }
 
-    for (j = 0; j < count; j++)
-    {
-        for (i = 0; i < 3; i++)
-        {
-            ang[i] = pAng[j][i];
-            if(j==count-1)
-                lastAng[i] = pAng[j][i];
-        }
-
-        for (i = 0; i < 3; i++)
-        {
-            if ((ang[i] < angRange[i][0]) || (ang[i] > angRange[i][1]))
-            {
-                cout << "Servo out of range" << endl;
-                return lastRtnErr = RobotOutOfRange;
-            }
-        }
-
-        InverseKinematics(ang, pos);
-
-        pos[0] = (pos[0] - lastPos[0])*cPosToImp;
-        pos[1] = (pos[1] - lastPos[1])*cPosToImp;
-        pos[2] = (pos[2] - lastPos[2])*cPosToImp;
-
-        cout << j << ":" << pos[0] << "," << pos[1] << "," << pos[2] << endl;
-//        FILE *fp = fopen("C:/Users/df/Desktop/Googol_point_move/googol/fuck.txt","a");
-//        for(i=0;i<count;i++)
+//    for (j = 0; j < count; j++)
+//    {
+//        for (i = 0; i < 3; i++)
 //        {
-//                fprintf(fp,"%f\t%f\t%f\n",pos[0],pos[1],pos[2]);
+//            ang[i] = pAng[j][i];
+//            if(j==count-1)
+//                lastAng[i] = pAng[j][i];
 //        }
-//        fclose(fp);
 
-        for (i = 0; i < 3; i++)
-        {
-            if (j == 0)
-            {
-                lastRtn = GT_PtData(axisNumber[i], pos[i], pTime[j]+1, PT_SEGMENT_NORMAL);
-                if (lastRtn)
-                    return lastRtnErr = RobotFailure;
-            }
+//        for (i = 0; i < 3; i++)
+//        {
+//            if ((ang[i] < angRange[i][0]) || (ang[i] > angRange[i][1]))
+//            {
+//                cout << "Servo out of range" << endl;
+//                return lastRtnErr = RobotOutOfRange;
+//            }
+//        }
 
-            else if (j == (count - 1))
-            {
-                lastRtn = GT_PtData(axisNumber[i], pos[i], pTime[j]+1, PT_SEGMENT_STOP);
-                if (lastRtn){
-                    return lastRtnErr = RobotFailure;}
-            }
+//        InverseKinematics(ang, pos);
 
-            else
-            {
-                lastRtn = GT_PtData(axisNumber[i], pos[i], pTime[j]+1, PT_SEGMENT_EVEN);
-                if (lastRtn){
-                    return lastRtnErr = RobotFailure;}
-            }
+//        pos[0] = (pos[0] - lastPos[0])*cPosToImp;
+//        pos[1] = (pos[1] - lastPos[1])*cPosToImp;
+//        pos[2] = (pos[2] - lastPos[2])*cPosToImp;
 
-            lastRtn = GT_PtSpace(axisNumber[i], &space[i]);
-            if (lastRtn)
-                return lastRtnErr = RobotFailure;
-        }
+//        cout << j << ":" << pos[0] << "," << pos[1] << "," << pos[2] << endl;
+////        FILE *fp = fopen("C:/Users/df/Desktop/Googol_point_move/googol/fuck.txt","a");
+////        for(i=0;i<count;i++)
+////        {
+////                fprintf(fp,"%f\t%f\t%f\n",pos[0],pos[1],pos[2]);
+////        }
+////        fclose(fp);
 
-        if (!(space[0] && space[1] && space[2]))
-        {
-            if (start == 0)
-            {
-                lastRtn = GT_PtStart((1 << (axisNumber[0] - 1)) + (1 << (axisNumber[1] - 1)) + (1 << (axisNumber[2] - 1)));
-                if (lastRtn)
-                    return lastRtnErr = RobotFailure;
+//        for (i = 0; i < 3; i++)
+//        {
+//            if (j == 0)
+//            {
+//                lastRtn = GT_PtData(axisNumber[i], pos[i], pTime[j]+1, PT_SEGMENT_NORMAL);
+//                if (lastRtn)
+//                    return lastRtnErr = RobotFailure;
+//            }
 
-                start = 1;
-            }
+//            else if (j == (count - 1))
+//            {
+//                lastRtn = GT_PtData(axisNumber[i], pos[i], pTime[j]+1, PT_SEGMENT_STOP);
+//                if (lastRtn){
+//                    return lastRtnErr = RobotFailure;}
+//            }
 
-            while (1)
-            {
-                for (i = 0; i < 3; i++)
-                {
-                    lastRtn = GT_PtSpace(axisNumber[i], &space[i]);
-                    if (lastRtn)
-                        return lastRtnErr = RobotFailure;
-                }
-                if ((space[0] && space[1] && space[2]))
-                    break;
-            }
-        }
-    }
+//            else
+//            {
+//                lastRtn = GT_PtData(axisNumber[i], pos[i], pTime[j]+1, PT_SEGMENT_EVEN);
+//                if (lastRtn){
+//                    return lastRtnErr = RobotFailure;}
+//            }
 
-    if (start == 0)
-    {
-        lastRtn = GT_PtStart((1 << (axisNumber[0] - 1)) + (1 << (axisNumber[1] - 1)) + (1 << (axisNumber[2] - 1)));
-        if (lastRtn)
-            return lastRtnErr = RobotFailure;
-        start = 1;
-    }
+//            lastRtn = GT_PtSpace(axisNumber[i], &space[i]);
+//            if (lastRtn)
+//                return lastRtnErr = RobotFailure;
+//        }
 
-    if (WaitForMotionComplete(RbtAllAxis) != RobotSuccess)
-        return lastRtnErr = RobotFailure;
+//        if (!(space[0] && space[1] && space[2]))
+//        {
+//            if (start == 0)
+//            {
+//                lastRtn = GT_PtStart((1 << (axisNumber[0] - 1)) + (1 << (axisNumber[1] - 1)) + (1 << (axisNumber[2] - 1)));
+//                if (lastRtn)
+//                    return lastRtnErr = RobotFailure;
 
-    if (GetEncStatus(lastPrfPos, lastEncPos) != RobotSuccess)
-        return lastRtnErr = RobotFailure;
+//                start = 1;
+//            }
 
-    return RobotSuccess;
-}
+//            while (1)
+//            {
+//                for (i = 0; i < 3; i++)
+//                {
+//                    lastRtn = GT_PtSpace(axisNumber[i], &space[i]);
+//                    if (lastRtn)
+//                        return lastRtnErr = RobotFailure;
+//                }
+//                if ((space[0] && space[1] && space[2]))
+//                    break;
+//            }
+//        }
+//    }
+
+//    if (start == 0)
+//    {
+//        lastRtn = GT_PtStart((1 << (axisNumber[0] - 1)) + (1 << (axisNumber[1] - 1)) + (1 << (axisNumber[2] - 1)));
+//        if (lastRtn)
+//            return lastRtnErr = RobotFailure;
+//        start = 1;
+//    }
+
+//    if (WaitForMotionComplete(RbtAllAxis) != RobotSuccess)
+//        return lastRtnErr = RobotFailure;
+
+//    if (GetEncStatus(lastPrfPos, lastEncPos) != RobotSuccess)
+//        return lastRtnErr = RobotFailure;
+
+//    return RobotSuccess;
+//}
 
 
 short AssemblyRobot::PointMove(double(*pAng)[3], long *pTime, unsigned int count)

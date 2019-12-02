@@ -25,8 +25,6 @@ HEADERS  += \
     RobotDefine.h
 
 
-
-
 win32: LIBS += -L$$PWD/./ -lgts -lExtMdl
 
 INCLUDEPATH += $$PWD/.

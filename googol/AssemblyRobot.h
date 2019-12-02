@@ -30,7 +30,7 @@ public:
 	
 	short GetEncStatus(double(&Prf)[3],double(&Enc)[3]);
     short PointMove(double(*pAng)[3], long *pTime, unsigned int count);
-    short PointMove(vector<vector<double>> pAng, vector<long> pTime, unsigned int count);
+//    short PointMove(vector<vector<double>> pAng, vector<long> pTime, unsigned int count);
     short AngMove(double(*pAng)[3], double (*profile)[3], unsigned int count);
     short CircleMove(double(*pAng)[3], double (*profile)[3], unsigned int count);
     short SetDo(short index, short value);
