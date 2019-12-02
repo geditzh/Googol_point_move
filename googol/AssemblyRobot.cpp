@@ -9,37 +9,39 @@
 
 AssemblyRobot::AssemblyRobot()
 {
+
 }
 AssemblyRobot::~AssemblyRobot()
 {
+
 }
 
-short AssemblyRobot::Initial(short coor)
+short AssemblyRobot::Initial(short coor)        //初始化
 {
-	robotCoor = coor;
+    robotCoor = coor;       //读取待初始化机器人坐标
 
-	lastRtn = GT_Open();
+    lastRtn = GT_Open();    //打开固高运动控制卡
 	if (lastRtn)
 	{
 		printf("GT_Open():%d\n", lastRtn);
 		return lastRtnErr = RobotFailure;		
 	}
 
-	lastRtn = GT_Reset();
+    lastRtn = GT_Reset();       //每次打开重置所有配置
 	if (lastRtn)
 	{
 		printf("GT_Reset():%d\n", lastRtn);
 		return lastRtnErr = RobotFailure;
 	}
 
-    lastRtn = GT_LoadConfig("./debug/GTS800.cfg");
+    lastRtn = GT_LoadConfig("./debug/GTS800.cfg");      //读取配置好的固高配置文件，需根据机器人电机等特性单独配置该文件。后期加入3T1R需要把后几个轴的信息一起配置好重新保存读入。
 	if (lastRtn)
 	{
 		printf("GT_LoadConfig():%d\n", lastRtn);
 		return lastRtnErr = RobotFailure;
 	}
 
-	lastRtn = GT_ClrSts(1, 8);
+    lastRtn = GT_ClrSts(1, 8);      //清除所有轴的原始状态信息，包括正负限位，home点，电机使能，伺服报警等
 	if (lastRtn)
 	{
 		printf("GT_ClrSts():%d\n", lastRtn);
@@ -49,15 +51,15 @@ short AssemblyRobot::Initial(short coor)
 	/************************************************************************************/
 	for (short i = 0; i < 3; i++)
 	{
-		lastRtn = GT_ZeroPos(axisNumber[i]);
+        lastRtn = GT_ZeroPos(axisNumber[i]);        //将规划器的位置清零
 		if (lastRtn)
 			return lastRtnErr = RobotFailure;
 
-        lastRtn = GT_SetAxisBand(axisNumber[i], 20,5);
-		if (lastRtn)
+        lastRtn = GT_SetAxisBand(axisNumber[i], 20,5);      //设置规划器与实际运动编码器读取值之间的容忍误差，用于电机到位检测，具体功能查看固高手册第11章11.7
+        if (lastRtn)
 			return lastRtnErr = RobotFailure;
 
-		lastRtn = GT_AxisOn(axisNumber[i]);
+        lastRtn = GT_AxisOn(axisNumber[i]);     //打开各轴使能
 		if (lastRtn)
 		{
 			printf("GT_AxisOn():%d\n", lastRtn);
@@ -65,22 +67,22 @@ short AssemblyRobot::Initial(short coor)
 		}
 	}
 
-	if (Home() != RobotSuccess)
+    if (Home() != RobotSuccess)     //调用回到HOME点程序
 		return lastRtnErr = RobotFailure;
 
 	return RobotSuccess;
 }
 
-short AssemblyRobot::Home()
+short AssemblyRobot::Home()     //从负限位开始运动置HOME点
 {
 	if (Stop(RbtAllAxis) != RobotSuccess)
 		return lastRtnErr = RobotFailure;
 
-	TJogPrm jog;
+    TJogPrm jog;        //需要在jog模式下，缓慢的将各轴同步运动到负限位
 	int i;
 	for (i = 0; i < 3; i++)
-	{
-		lastRtn = GT_PrfJog(axisNumber[i]);
+    {
+        lastRtn = GT_PrfJog(axisNumber[i]);     //设定jog模式，具体参考固高手册第六章6.3
 		if (lastRtn)
 			return lastRtnErr = RobotFailure;
 
@@ -99,8 +101,9 @@ short AssemblyRobot::Home()
 		if (lastRtn)
 			return lastRtnErr = RobotFailure;
 	}
-	Sleep(200);
+    Sleep(200);     //等待设定完毕
 
+        //开始运动，直到负限位触发，电机自动停止
 		lastRtn = GT_Update(
 			(1 << (axisNumber[0] - 1)) + (1 << (axisNumber[1] - 1)) + (1 << (axisNumber[2] - 1)));
 		if (lastRtn)
@@ -112,17 +115,17 @@ short AssemblyRobot::Home()
 			lastRtn = GT_GetSts(axisNumber[0], sts, 3);
 			if (lastRtn)
 				return lastRtnErr = RobotFailure;
-		} while (!((sts[0] & 0x40) && (sts[1] & 0x40) && (sts[2] & 0x40)));
+        } while (!((sts[0] & 0x40) && (sts[1] & 0x40) && (sts[2] & 0x40)));     //循环等待所有轴负限位全部触发，sts状态参考手册第五章5.3
 		
 		if (Stop(RbtAllAxis) != RobotSuccess)
 			return lastRtnErr = RobotFailure;
 		Sleep(500);
 
-		lastRtn = GT_ClrSts(1, 8);
+        lastRtn = GT_ClrSts(1, 8);      //清除所有轴状态，（若不执行该行程序，可能由于正限位被触发等干扰情况发生，导致电机无法朝正限位向下运动捕捉HOME点）
 		if (lastRtn)
 			return lastRtnErr = RobotFailure;
 
-		for (i = 0; i < 3; i++)
+        for (i = 0; i < 3; i++)     //继续利用jog模式，速度方向相反，朝着正限位向下开始运动
 		{
             lastRtn = GT_SetVel(axisNumber[i], 25);
 			if (lastRtn)
@@ -130,6 +133,7 @@ short AssemblyRobot::Home()
 		}
 		Sleep(100);
 
+        //开始运动
 		lastRtn = GT_Update(
 			(1 << (axisNumber[0] - 1)) + (1 << (axisNumber[1] - 1)) + (1 << (axisNumber[2] - 1)));
 		if (lastRtn)
@@ -137,7 +141,7 @@ short AssemblyRobot::Home()
 
 		for (i = 0; i < 3; i++)
 		{
-			lastRtn = GT_SetCaptureMode(axisNumber[i], CAPTURE_HOME);
+            lastRtn = GT_SetCaptureMode(axisNumber[i], CAPTURE_HOME);       //开启步骤HOME点模式，捕捉到以后，电机并不会停止运动，而是将home点的编码器位置保存，参考手册第8章8.5
 			if (lastRtn)
 				return lastRtnErr = RobotFailure;
 		}
@@ -147,17 +151,13 @@ short AssemblyRobot::Home()
 		double encPos[3];
 		do
 		{
-			lastRtn = GT_GetCaptureStatus(axisNumber[0], status, pos, 3);
+            lastRtn = GT_GetCaptureStatus(axisNumber[0], status, pos, 3);       //循环读取每个轴状态，等待捕捉HOME触发，若触发则保存在pos中
 			if (lastRtn)
 				return lastRtnErr = RobotFailure;
-			lastRtn = GT_GetEncPos(axisNumber[0],encPos,3);
+            lastRtn = GT_GetEncPos(axisNumber[0],encPos,3);     //查看编码器的值
 			if (lastRtn)
 				return lastRtnErr = RobotFailure;
-
-			//printf("status[0] = %d enc[0] = %-8.0lf\n", status[0], encPos[0]);
-			//printf("status[1] = %d enc[1] = %-8.0lf\n", status[1], encPos[1]);
-			//printf("status[2] = %d enc[2] = %-8.0lf\n", status[2], encPos[2]);
-		} while ((status[0] == 0) || (status[1] == 0) || (status[2] == 0));
+        } while ((status[0] == 0) || (status[1] == 0) || (status[2] == 0));     //等待各个轴HOME点全部触发
 
 		for (i = 0; i < 3; i++)
 		{
@@ -168,15 +168,15 @@ short AssemblyRobot::Home()
 			return lastRtnErr = RobotFailure;
 		Sleep(500);
 
-		lastRtn = GT_ClrSts(1, 8);
+        lastRtn = GT_ClrSts(1, 8);      //清除轴状态，为了让之前负限位的触发标志位清零，若不执行该行，则负限位不会自动清零，电机无法朝上运动。
 		if (lastRtn)
 			return lastRtnErr = RobotFailure;
 
-		TrapPrm trap;
+        TrapPrm trap;           //利用点位运动模式，补偿机器人回到绝对的HOME点
 		for (i = 0; i < 3; i++)
 		{
-			lastRtn = GT_PrfTrap(axisNumber[i]);
-			if (lastRtn)
+            lastRtn = GT_PrfTrap(axisNumber[i]);        //点位运动具体参考手册第六章6.2
+            if (lastRtn)
 				return lastRtnErr = RobotFailure;
 
 			lastRtn = GT_GetTrapPrm(axisNumber[i], &trap);
@@ -196,34 +196,35 @@ short AssemblyRobot::Home()
 		}
 		Sleep(100);
 
-        lastRtn = GT_SetPos(axisNumber[0], pos[0] + cHome - 3428);      //+498
+        lastRtn = GT_SetPos(axisNumber[0], pos[0] + cHome - 3428);       //pos为捕获的home点位置，3428为激光跟踪仪标定的HOME点误差补偿
         if (lastRtn)
             return lastRtnErr = RobotFailure;
 
-        lastRtn = GT_SetPos(axisNumber[1], pos[1] + cHome - 355);        //+378
+        lastRtn = GT_SetPos(axisNumber[1], pos[1] + cHome - 355);        //同上
         if (lastRtn)
             return lastRtnErr = RobotFailure;
 
-        lastRtn = GT_SetPos(axisNumber[2], pos[2] + cHome - 1794);      //-684
+        lastRtn = GT_SetPos(axisNumber[2], pos[2] + cHome - 1794);      //同上
 		if (lastRtn)
 			return lastRtnErr = RobotFailure;
         Sleep(100);
 
+        //开始运动置补偿后位置
 		lastRtn = GT_Update(
 			(1 << (axisNumber[0] - 1)) + (1 << (axisNumber[1] - 1)) + (1 << (axisNumber[2] - 1)));
 		if (lastRtn)
 			return lastRtnErr = RobotFailure;
 
-		if (WaitForMotionComplete(RbtAllAxis) != RobotSuccess)
+        if (WaitForMotionComplete(RbtAllAxis) != RobotSuccess)      //等待各轴同步运动完成
 			return RobotFailure;
 
-		lastRtn = GT_ZeroPos(axisNumber[0],3);
+        lastRtn = GT_ZeroPos(axisNumber[0],3);      //清除所有轴的规划器位置以及编码器位置，从相对home点的0位置开始规划运动
 		if (lastRtn)
 			return lastRtnErr = RobotFailure;
 
 		for (i = 0; i < 3; i++)
 		{
-			lastRtn = GT_SetPrfPos(axisNumber[i], cHome);
+            lastRtn = GT_SetPrfPos(axisNumber[i], cHome);        //设定cHome为定义的绝对零位，根据cHome的值不同，可设定不同零为。目前用到cHOme为0.
 			if (lastRtn)
 				return lastRtnErr = RobotFailure;
 
@@ -235,7 +236,7 @@ short AssemblyRobot::Home()
 		}
         Sleep(1000);
 				 
-		if (GetEncStatus(lastPrfPos, lastEncPos) != RobotSuccess)
+        if (GetEncStatus(lastPrfPos, lastEncPos) != RobotSuccess)       //查看编码器和规划器位置
 			return lastRtnErr = RobotFailure;
 
 		for (int i = 0; i < 3; i++)
@@ -246,7 +247,7 @@ short AssemblyRobot::Home()
 
 		for (i = 0; i < 3; i++)
 		{
-			lastRtn = GT_PrfPt(axisNumber[i], PT_MODE_DYNAMIC);
+            lastRtn = GT_PrfPt(axisNumber[i], PT_MODE_DYNAMIC);     //设定各轴为PT模式，等待运动规划，具体参考手册（高级功能版）PT模式
 			if (lastRtn)
 				return lastRtnErr = RobotFailure;
 
@@ -261,7 +262,7 @@ short AssemblyRobot::Home()
 		return RobotSuccess;
 }
 
-short AssemblyRobot::Stop(short stopMode)
+short AssemblyRobot::Stop(short stopMode)       //停止各轴规划运动
 {
 	if (stopMode == RbtAllAxis)
 	{
@@ -272,7 +273,7 @@ short AssemblyRobot::Stop(short stopMode)
 	return RobotSuccess;
 }
 
-short AssemblyRobot::WaitForMotionComplete(short moveMode)
+short AssemblyRobot::WaitForMotionComplete(short moveMode)      //等到各轴运动完毕
 {
     long sts[3];
     double encPos[3], prfPos[3];
@@ -284,13 +285,13 @@ short AssemblyRobot::WaitForMotionComplete(short moveMode)
             if (lastRtn)
                 return lastRtnErr = RobotFailure;
             GetEncStatus(lastPrfPos, lastEncPos);
-        } while (!((sts[0] & 0x800) && (sts[1] & 0x800) && (sts[2] & 0x800)));
+        } while (!((sts[0] & 0x800) && (sts[1] & 0x800) && (sts[2] & 0x800)));      //等到各轴运动完毕，sts状态参考手册第五章5.3
         return RobotSuccess;
     }
 }
 
 
-short AssemblyRobot::InverseKinematics(const double(&ang)[3], double(&pos)[3])
+short AssemblyRobot::InverseKinematics(const double(&ang)[3], double(&pos)[3])      //3-PSS/S机器人逆运动学
 {
 	double alpha, beta, gamma;
 	double theta = 30.0 / 180 * PI;
@@ -349,7 +350,7 @@ short AssemblyRobot::InverseKinematics(const double(&ang)[3], double(&pos)[3])
 	return RobotSuccess;
 }
 
-short AssemblyRobot::Close()
+short AssemblyRobot::Close()        //关闭固高运动控制卡
 {
 	for (int i = 0; i < 3; i++)
 	{
@@ -366,7 +367,7 @@ short AssemblyRobot::Close()
 	return RobotSuccess;
 }
 
-short AssemblyRobot::GetEncStatus(double(&Prf)[3],double(&Enc)[3])
+short AssemblyRobot::GetEncStatus(double(&Prf)[3],double(&Enc)[3])      //读取规划器位置与编码器位置
 {
 	lastRtn = GT_GetPrfPos(axisNumber[0], Prf, 3);
 	if (lastRtn)
@@ -377,6 +378,7 @@ short AssemblyRobot::GetEncStatus(double(&Prf)[3],double(&Enc)[3])
 		return lastRtnErr = RobotFailure;
 	return RobotSuccess;
 }
+
 
 
 //short AssemblyRobot::PointMove(vector<vector<double>> pAng, vector<long> pTime, unsigned int count)
@@ -509,15 +511,15 @@ short AssemblyRobot::GetEncStatus(double(&Prf)[3],double(&Enc)[3])
 //}
 
 
-short AssemblyRobot::PointMove(double(*pAng)[3], long *pTime, unsigned int count)
+short AssemblyRobot::PointMove(double(*pAng)[3], long *pTime, unsigned int count)       //3-PSS/S点位运动，输入Z-Y-X欧拉角，及到位的时间
 {
     short i, j, start = 0;
     short space[3];
     double ang[3],pos[3];
 
-    InverseKinematics(lastAng, lastPos);
+    InverseKinematics(lastAng, lastPos);        //逆运动学，输入Z-Y-X欧拉角，得到直线电机位置
 
-    flag_time += pTime[count-1];
+    flag_time += pTime[count-1];        //总运行时间
 
     lastRtn = GT_ClrSts(1, 8);
     if (lastRtn)
@@ -525,7 +527,7 @@ short AssemblyRobot::PointMove(double(*pAng)[3], long *pTime, unsigned int count
 
     for (i = 0; i < 3; i++)
     {
-        lastRtn = GT_PrfPt(axisNumber[i], PT_MODE_DYNAMIC);
+        lastRtn = GT_PrfPt(axisNumber[i], PT_MODE_DYNAMIC);     //PT模式配置，具体参考手册（高级功能版）
         if (lastRtn)
             return lastRtnErr = RobotFailure;
 
@@ -538,18 +540,18 @@ short AssemblyRobot::PointMove(double(*pAng)[3], long *pTime, unsigned int count
             return lastRtnErr = RobotFailure;
     }
 
-    for (j = 0; j < count; j++)
+    for (j = 0; j < count; j++)     //count为位置序列个数
     {
         for (i = 0; i < 3; i++)
         {
             ang[i] = pAng[j][i];
             if(j==count-1)
-                lastAng[i] = pAng[j][i];
+                lastAng[i] = pAng[j][i];        //记录最后一个任务点的角度，用于下一次在线规划时，计算绝对位置欧拉角，而不是相对位置
         }
 
         for (i = 0; i < 3; i++)
         {
-            if ((ang[i] < angRange[i][0]) || (ang[i] > angRange[i][1]))
+            if ((ang[i] < angRange[i][0]) || (ang[i] > angRange[i][1]))     //最大工作空间限制
             {
                 cout << "Servo out of range" << endl;
                 return lastRtnErr = RobotOutOfRange;
@@ -558,7 +560,7 @@ short AssemblyRobot::PointMove(double(*pAng)[3], long *pTime, unsigned int count
 
         InverseKinematics(ang, pos);
 
-        pos[0] = (pos[0] - lastPos[0])*cPosToImp;
+        pos[0] = (pos[0] - lastPos[0])*cPosToImp;       //目标任务点位置减去上一次最后的位置，即转化为绝对位置，再乘cPosToImp转化为脉冲个数
         pos[1] = (pos[1] - lastPos[1])*cPosToImp;
         pos[2] = (pos[2] - lastPos[2])*cPosToImp;
 
@@ -567,21 +569,21 @@ short AssemblyRobot::PointMove(double(*pAng)[3], long *pTime, unsigned int count
         {
             if (j == 0)
             {
-                lastRtn = GT_PtData(axisNumber[i], pos[i], pTime[j]+1, PT_SEGMENT_NORMAL);
+                lastRtn = GT_PtData(axisNumber[i], pos[i], pTime[j]+1, PT_SEGMENT_NORMAL);      //PT模式自带的T型速度规划，参考手册（高级功能版）
                 if (lastRtn)
                     return lastRtnErr = RobotFailure;
             }
 
             else if (j == (count - 1))
             {
-                lastRtn = GT_PtData(axisNumber[i], pos[i], pTime[j]+1, PT_SEGMENT_STOP);
+                lastRtn = GT_PtData(axisNumber[i], pos[i], pTime[j]+1, PT_SEGMENT_STOP);        //同上
                 if (lastRtn){
                     return lastRtnErr = RobotFailure;}
             }
 
             else
             {
-                lastRtn = GT_PtData(axisNumber[i], pos[i], pTime[j]+1, PT_SEGMENT_EVEN);
+                lastRtn = GT_PtData(axisNumber[i], pos[i], pTime[j]+1, PT_SEGMENT_EVEN);        //同上
                 if (lastRtn){
                     return lastRtnErr = RobotFailure;}
             }
@@ -591,7 +593,7 @@ short AssemblyRobot::PointMove(double(*pAng)[3], long *pTime, unsigned int count
                 return lastRtnErr = RobotFailure;
         }
 
-        if (!(space[0] && space[1] && space[2]))
+        if (!(space[0] && space[1] && space[2]))         //若PT模式规划器缓冲区满了，则先开始规划器运动，将已写入规划器的位置先运行
         {
             if (start == 0)
             {
@@ -606,17 +608,17 @@ short AssemblyRobot::PointMove(double(*pAng)[3], long *pTime, unsigned int count
             {
                 for (i = 0; i < 3; i++)
                 {
-                    lastRtn = GT_PtSpace(axisNumber[i], &space[i]);
+                    lastRtn = GT_PtSpace(axisNumber[i], &space[i]);     //循环读取缓冲区的空间
                     if (lastRtn)
                         return lastRtnErr = RobotFailure;
                 }
-                if ((space[0] && space[1] && space[2]))
+                if ((space[0] && space[1] && space[2]))     //缓冲区为空，代表写入规划器的位置已经全部运行结束，接着跳出继续写入
                     break;
             }
         }
     }
 
-    if (start == 0)
+    if (start == 0)     //写完所有位置序列，缓冲区仍然没有满，则开始运行
     {
         lastRtn = GT_PtStart((1 << (axisNumber[0] - 1)) + (1 << (axisNumber[1] - 1)) + (1 << (axisNumber[2] - 1)));
         if (lastRtn)
@@ -624,7 +626,7 @@ short AssemblyRobot::PointMove(double(*pAng)[3], long *pTime, unsigned int count
         start = 1;
     }
 
-    if (WaitForMotionComplete(RbtAllAxis) != RobotSuccess)
+    if (WaitForMotionComplete(RbtAllAxis) != RobotSuccess)      //等待规划器所有位置序列运行结束
         return lastRtnErr = RobotFailure;
 
     if (GetEncStatus(lastPrfPos, lastEncPos) != RobotSuccess)
@@ -633,7 +635,7 @@ short AssemblyRobot::PointMove(double(*pAng)[3], long *pTime, unsigned int count
     return RobotSuccess;
 }
 
-short AssemblyRobot::AngMove(double(*pAng)[3], double (*profile)[3], unsigned int count)
+short AssemblyRobot::AngMove(double(*pAng)[3], double (*profile)[3], unsigned int count)        //带梯型速度规划的Z-Y-X欧拉角与运动速度写入
 {
     pAng[0][0] = lastAng[0];
     pAng[0][1] = lastAng[1];
@@ -649,19 +651,19 @@ short AssemblyRobot::AngMove(double(*pAng)[3], double (*profile)[3], unsigned in
 
     double allowVel,allowAcc,allowDcc;
 
-    for(i=0; i<count; i++)
+    for(i=0; i<count; i++)      //该count为需要运行任务点的个数，与Pointmove中的count个数含义不同
     {
         x[i] = pAng[i+1][0]-pAng[i][0];
         y[i] = pAng[i+1][1]-pAng[i][1];
         z[i] = pAng[i+1][2]-pAng[i][2];
 
-        length = sqrt(x[i]*x[i] + y[i]*y[i] + z[i]*z[i]);
+        length = sqrt(x[i]*x[i] + y[i]*y[i] + z[i]*z[i]);       //计算任务角度之间的二范数作为距离
 
-        allowAcc = profile[i][0]>MaxAcc?MaxAcc:profile[i][0];
+        allowAcc = profile[i][0]>MaxAcc?MaxAcc:profile[i][0];       //判断是否超出最大速度限制
         allowVel = profile[i][1]>MaxVel?MaxVel:profile[i][1];
         allowDcc = profile[i][2]>MaxDcc?MaxDcc:profile[i][2];
 
-        if(allowVel*allowVel < 2*length*allowAcc*allowDcc/(allowAcc+allowDcc))
+        if(allowVel*allowVel < 2*length*allowAcc*allowDcc/(allowAcc+allowDcc))      //梯型速度规划的相关代码
         {
             itpCount[i][0] = int(ceil(allowVel/allowAcc));
             itpCount[i][1] = int(ceil(length/allowVel-
@@ -669,7 +671,7 @@ short AssemblyRobot::AngMove(double(*pAng)[3], double (*profile)[3], unsigned in
             itpCount[i][2] = int(ceil(allowVel/allowDcc));
 
         }
-        else
+        else        //同上
         {
             itpCount[i][0] = int(ceil(sqrt(2*allowDcc/(allowAcc*allowDcc+allowAcc*allowAcc)*length)));
             itpCount[i][1] = 0;
@@ -689,9 +691,9 @@ short AssemblyRobot::AngMove(double(*pAng)[3], double (*profile)[3], unsigned in
         unsigned int temp=0;
         double percent;
 
-        for(i=0; i<count; i++)
+        for(i=0; i<count; i++)      //该count为需要运行任务点的个数，与Pointmove中的count个数含义不同
         {
-            for(j=0; j<itpCount[i][0]; j++)
+            for(j=0; j<itpCount[i][0]; j++)     //计算三个角度的T型速度规划下，所有的位置时间序列
             {
                 if(j==0) percent=0;
                 else
@@ -705,7 +707,7 @@ short AssemblyRobot::AngMove(double(*pAng)[3], double (*profile)[3], unsigned in
             }
             temp += itpCount[i][0];
 
-            for(j=0; j<itpCount[i][1]; j++)
+            for(j=0; j<itpCount[i][1]; j++)     //计算三个角度的T型速度规划下，所有的位置时间序列
             {
                 if(j==0)
                 {
@@ -722,7 +724,7 @@ short AssemblyRobot::AngMove(double(*pAng)[3], double (*profile)[3], unsigned in
             }
             temp +=itpCount[i][1];
 
-            for(j=0; j<itpCount[i][2]; j++)
+            for(j=0; j<itpCount[i][2]; j++)     //计算三个角度的T型速度规划下，所有的位置时间序列
             {
                 if(j==0)
                 {
@@ -752,7 +754,7 @@ short AssemblyRobot::AngMove(double(*pAng)[3], double (*profile)[3], unsigned in
         pAngs[itpSum][2] = pAng[i][2];
         pTime[itpSum] = itpSum;
 
-        PointMove(pAngs,pTime,itpSum+1);
+        PointMove(pAngs,pTime,itpSum+1);        //将所有的位置时间序列调用PointMove，其中itpSum+1代表了位置时间序列的个数
 
         delete[] pAngs;delete[] pTime;
         delete[] z;delete[] y;delete[] x;
@@ -762,7 +764,7 @@ short AssemblyRobot::AngMove(double(*pAng)[3], double (*profile)[3], unsigned in
 }
 
 
-short AssemblyRobot::SetDo(short index, short value)
+short AssemblyRobot::SetDo(short index, short value)        //设置自带板卡的IO
 {
     lastRtn = GT_SetDoBit(MC_GPO,index,value);
     if(lastRtn)
@@ -770,7 +772,7 @@ short AssemblyRobot::SetDo(short index, short value)
     return RobotSuccess;
 }
 
-short AssemblyRobot::SetExtDo(short index, short value)
+short AssemblyRobot::SetExtDo(short index, short value)     //设置扩展IO模块的IO信号
 {
     lastRtn = GT_OpenExtMdl("gts.dll");
     if(lastRtn)
@@ -781,7 +783,6 @@ short AssemblyRobot::SetExtDo(short index, short value)
         return lastRtnErr = RobotFailure;
 
     lastRtn = GT_SetExtIoBit(0,index,value);
-    lastRtn = GT_SetExtIoBit(0,index+1,value);
     if(lastRtn)
         return lastRtnErr = RobotFailure;
 
